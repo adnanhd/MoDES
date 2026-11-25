@@ -25,9 +25,10 @@ cat "$DATA/envs/modes-constraints.txt"
 "${X[@]}" "$VENV/bin/python" -m pip install -q -c "$DATA/envs/modes-constraints.txt" \
     "lmms_eval @ git+https://github.com/EvolvingLMMs-Lab/lmms-eval.git@$LMMS" loguru tiktoken blobfile ipdb
 "${X[@]}" "$VENV/bin/python" -c 'import torch, transformers, lmms_eval, flash_attn; from transformers import Qwen3VLMoeForConditionalGeneration; print("import ok", torch.__version__, transformers.__version__, flash_attn.__version__)'
-"${X[@]}" "$VENV/bin/hf" download Qwen/Qwen3-VL-30B-A3B-Instruct --local-dir "$STORE/models/Qwen3-VL-30B-A3B-Instruct"
-"${X[@]}" "$VENV/bin/hf" download lmms-lab/GQA testdev_balanced_images/testdev-00000-of-00001.parquet \
-    testdev_balanced_instructions/testdev-00000-of-00001.parquet --repo-type dataset --local-dir "$STORE/datasets/GQA"
+"${X[@]}" "$VENV/bin/python" -c 'import sys; from huggingface_hub import snapshot_download as s
+s("Qwen/Qwen3-VL-30B-A3B-Instruct", local_dir=sys.argv[1] + "/models/Qwen3-VL-30B-A3B-Instruct")
+s("lmms-lab/GQA", repo_type="dataset", local_dir=sys.argv[1] + "/datasets/GQA", allow_patterns=[
+  "testdev_balanced_images/testdev-00000-of-00001.parquet", "testdev_balanced_instructions/testdev-00000-of-00001.parquet"])' "$STORE"
 "${X[@]}" "$VENV/bin/python" -c 'from datasets import load_dataset; d = load_dataset("lmms-lab/ChartQA", split="test"); print("chartqa", len(d))'
 du -sh "$STORE"/models/* "$STORE"/datasets/*
 echo "DONE $(date +%T)"
