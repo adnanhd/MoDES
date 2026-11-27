@@ -27,7 +27,8 @@ M=storage/models/Qwen3-VL-30B-A3B-Instruct
 X=(singularity exec --nv --cleanenv --bind /scratch/aharun --env CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:?}"
    --env HF_HOME="$DATA/hf-home" --env PYTHONPATH="$CODE:$CODE/MoDES" --env HF_ALLOW_CODE_EVAL=1
    --env HF_DATASETS_TRUST_REMOTE_CODE=true --env PYTHONDONTWRITEBYTECODE=1 "$SIF")
-A=("$VENV/bin/accelerate" launch --num_processes 1 --main_process_port 5678)
+# accelerate is the image's (system site-packages), so the venv has no bin/accelerate; the venv python runs its launcher
+A=("$VENV/bin/python" -m accelerate.commands.launch --num_processes 1 --main_process_port 5678)
 echo "code $(git rev-parse --short HEAD); out $OUT; rho $RHO"; hostname; nvidia-smi -L
 IMP=storage/importance/gqa/Qwen3-VL-30B-A3B-Instruct/kl_0_1024.pkl
 [ -e "$IMP" ] || "${X[@]}" "${A[@]}" get_layer_importance_ddp.py --name_or_path $M --save_dir storage/importance \
